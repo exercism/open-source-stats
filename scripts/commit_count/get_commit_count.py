@@ -68,7 +68,13 @@ async def get_repo_stats(repo: Repo) -> Repo:
                     as response:
                 commits = await response.json()
 
-        repo_stat = RepoStat(day, len(commits))
+        commit_count = len(commits) if \
+            commits and \
+            isinstance(commits, list) and \
+            'commit' in commits[0] \
+            else 0
+
+        repo_stat = RepoStat(day, commit_count)
 
         repo_stats.append(repo_stat)
 

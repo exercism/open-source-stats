@@ -1,5 +1,10 @@
 import os
 
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
+import pandas as pd
+
 
 def generate_plot(result_dir: str):
     commit_count_file = os.path.join(result_dir, 'commit_count.csv')
@@ -9,6 +14,37 @@ def generate_plot(result_dir: str):
 
         return
 
+    commit_count_content = pd.read_csv(
+        commit_count_file,
+        sep=',',
+        header=0,
+        names=['date', 'commit_count']
+    )
+
+    x_pos = range(len(commit_count_content))
+
+    plt.bar(x_pos, commit_count_content['commit_count'])
+
+    plt.xticks(x_pos, commit_count_content['date'], rotation=90)
+
+ #   plt.plot(commit_count_content['date'], commit_count_content['commit_count'])
+
+    plt.ylabel('Commit Count')
+
+    plt.xlabel('Date')
+
+ #   plt.xticks(rotation=90)
+
+    plt.title(os.path.split(result_dir)[-1])
+
+    plt.rcParams["figure.figsize"] = [60, 20]
+
+    # plt.show()
+
+    plt.savefig(os.path.join(result_dir, 'commit_count.png'))
+
+    plt.close()
+
 
 def main():
     result_dirs = map(
@@ -17,11 +53,7 @@ def main():
     )
 
     for dir in result_dirs:
-        print(dir)
-
         generate_plot(dir)
-
-        break
 
 
 def check_envinroment_variables() -> (dict, dict):
