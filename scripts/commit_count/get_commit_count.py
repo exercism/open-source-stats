@@ -1,7 +1,8 @@
 import os
 import csv
 import asyncio
-from datetime import datetime, timedelta
+from collections import defaultdict
+from datetime import datetime
 
 import aiohttp
 import aiofiles
@@ -50,16 +51,17 @@ async def get_repos() -> map:
 async def get_repo_stats(repo: Repo) -> Repo:
     repo_stats = list()
 
-    now = datetime.now()
+    until = datetime.now()
 
-    start_point = now - timedelta(days=31*6)
+    def commit_to_date(commit: dict):
+        return datetime.strptime(
+                commit['commit']['committer']['date'],
+                '%Y-%m-%dT%H:%M:%SZ'
+            )
 
-    for day in rrule.rrule(rrule.DAILY, dtstart=start_point, until=now):
-        prev_day = day - timedelta(days=1)
-
+    while True:
         params = {
-            'since': prev_day.strftime('%Y-%m-%dT%H:%M:%SZ'),
-            'until': day.strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'until': until.strftime('%Y-%m-%dT%H:%M:%SZ'),
             'access_token': os.environ['GITHUB_TOKEN']
         }
 
@@ -68,15 +70,36 @@ async def get_repo_stats(repo: Repo) -> Repo:
                     as response:
                 commits = await response.json()
 
-        commit_count = len(commits) if \
-            commits and \
-            isinstance(commits, list) and \
-            'commit' in commits[0] \
-            else 0
+        if not commits or 'commit' not in commits[0]:
+            break
 
-        repo_stat = RepoStat(day, commit_count)
+        day_count = defaultdict(lambda: 0)
 
-        repo_stats.append(repo_stat)
+        minimal_date = commit_to_date(commits[0])
+
+        for commit in commits:
+            commit_date = commit_to_date(commit)
+
+            if commit_date < minimal_date:
+                minimal_date = commit_date
+
+            day_key = commit_date.strftime('%Y-%m-%d')
+
+            day_count[day_key] += 1
+
+        if minimal_date == until:
+            break
+
+        interval_stats = list()
+
+        for day in rrule.rrule(rrule.DAILY, dtstart=minimal_date, until=until):
+            repo_stat = RepoStat(day, day_count[day.strftime('%Y-%m-%d')])
+
+            interval_stats.append(repo_stat)
+
+        repo_stats.extend(reversed(interval_stats))
+
+        until = minimal_date
 
     repo.repo_stats = repo_stats
 
@@ -157,10 +180,9 @@ if __name__ == '__main__':
     present_variables, missing_variables = check_envinroment_variables()
 
     if missing_variables:
-        print(
-            (
-                'Some required environment variables were not set:\n{}\n\n'
-                'The script is aborted.'
+        print((
+            'Some required environment variables were not set:\n{}\n\n'
+            'The script is aborted.'
             ).format('\n'.join(missing_variables.keys()))
         )
     else:
