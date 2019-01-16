@@ -3,6 +3,11 @@ import os
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
+plt.rcParams["figure.figsize"] = [120, 8]
+plt.rcParams["figure.dpi"] = 200
+plt.rcParams["font.size"] = 3
+
+
 import pandas as pd
 
 
@@ -27,19 +32,11 @@ def generate_plot(result_dir: str):
 
     plt.xticks(x_pos, commit_count_content['date'], rotation=90)
 
- #   plt.plot(commit_count_content['date'], commit_count_content['commit_count'])
-
     plt.ylabel('Commit Count')
 
     plt.xlabel('Date')
 
- #   plt.xticks(rotation=90)
-
     plt.title(os.path.split(result_dir)[-1])
-
-    plt.rcParams["figure.figsize"] = [60, 20]
-
-    # plt.show()
 
     plt.savefig(os.path.join(result_dir, 'commit_count.png'))
 
@@ -53,13 +50,14 @@ def main():
     )
 
     for dir in result_dirs:
+        print('Plotting', dir)
+
         generate_plot(dir)
 
 
 def check_envinroment_variables() -> (dict, dict):
     required_variables = {
         'RESULT_DIR': os.environ.get('RESULT_DIR'),
-        'GITHUB_TOKEN': os.environ.get('GITHUB_TOKEN'),
     }
 
     present_variables = dict()
