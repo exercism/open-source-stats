@@ -13,10 +13,8 @@ import pandas as pd
 
 def generate_plot(result_dir: str):
     commit_count_file = os.path.join(result_dir, 'commit_count.csv')
-
     if not os.path.exists(commit_count_file):
         print('Commit count CSV file not found for the {}'.format(result_dir))
-
         return
 
     commit_count_content = pd.read_csv(
@@ -29,17 +27,11 @@ def generate_plot(result_dir: str):
     x_pos = range(len(commit_count_content))
 
     plt.bar(x_pos, commit_count_content['commit_count'])
-
     plt.xticks(x_pos, commit_count_content['date'], rotation=90)
-
     plt.ylabel('Commit Count')
-
     plt.xlabel('Date')
-
     plt.title(os.path.split(result_dir)[-1])
-
     plt.savefig(os.path.join(result_dir, 'commit_count.png'))
-
     plt.close()
 
 
@@ -51,7 +43,6 @@ def main():
 
     for dir in result_dirs:
         print('Plotting', dir)
-
         generate_plot(dir)
 
 
@@ -59,9 +50,7 @@ def check_envinroment_variables() -> (dict, dict):
     required_variables = {
         'RESULT_DIR': os.environ.get('RESULT_DIR'),
     }
-
     present_variables = dict()
-
     missing_variables = dict()
 
     for name, value in required_variables.items():
@@ -85,7 +74,6 @@ if __name__ == '__main__':
         )
     else:
         print('The following environment variables were set:')
-
         for k, v in present_variables.items():
             print('{}: {}'.format(k, v))
 
