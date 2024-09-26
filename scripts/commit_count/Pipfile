@@ -1,0 +1,14 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pip = "==18.0"
+python-dateutil = "*"
+aiohttp = "*"
+aiofiles = "*"
+matplotlib = "*"
+pandas = "*"
+
+[dev-packages]
